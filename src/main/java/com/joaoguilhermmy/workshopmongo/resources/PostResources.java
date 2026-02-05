@@ -16,19 +16,35 @@ import com.joaoguilhermmy.workshopmongo.domain.Post;
 import com.joaoguilhermmy.workshopmongo.resources.util.URL;
 import com.joaoguilhermmy.workshopmongo.service.PostService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping(value = "/posts")
+@Tag(name = "Post Management", description = "Operations related to posts and searches")
 public class PostResources {
 
     @Autowired
     private PostService service;
 
+    @Operation(summary = "Find post by ID", description = "Retrieves detailed information about a specific post.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Post found successfully"),
+            @ApiResponse(responseCode = "404", description = "Post not found")
+    })
     @GetMapping(value = "/{id}")
     public ResponseEntity<Post> findByid(@PathVariable String id) {
         Post post = service.findById(id);
         return ResponseEntity.ok().body(post);
     }
 
+    @Operation(summary = "Search posts by title", description = "Performs a simple search to find posts containing the given text in the title.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Search completed successfully"),
+            @ApiResponse(responseCode = "200", description = "Return empty list if no post matches")
+    })
     @GetMapping(value = "/titlesearch")
     public ResponseEntity<List<Post>> findTitle(@RequestParam(value = "text", defaultValue = "") String text) {
         text = URL.decodeParam(text);
@@ -36,6 +52,11 @@ public class PostResources {
         return ResponseEntity.ok().body(list);
     }
 
+    @Operation(summary = "Advanced post search", description = "Search for posts containing specific text within a defined date range (minDate and maxDate).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Advanced search completed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid date format")
+    })
     @RequestMapping(value = "/fullsearch", method = RequestMethod.GET)
     public ResponseEntity<List<Post>> fullSearch(
             @RequestParam(value = "text", defaultValue = "") String text,
